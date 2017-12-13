@@ -3,7 +3,7 @@ var mongoose = require('mongoose')
 var getRawBody = require('raw-body')
 var app = express()
 
-mongoose.connect('mongodb://mongo:27017/local', { useMongoClient: true }, function (err) {
+mongoose.connect(process.env.MONGO_URL, { useMongoClient: true }, function (err) {
   if (err) {
     console.error('[LOGGER] ', err.message)
     process.exit()
