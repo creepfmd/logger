@@ -3,12 +3,14 @@ var mongoose = require('mongoose')
 var getRawBody = require('raw-body')
 var app = express()
 
+var loggerCollection
+
 mongoose.connect(process.env.MONGO_URL, { useMongoClient: true }, function (err) {
   if (err) {
     console.error('[LOGGER] ', err.message)
     process.exit()
   }
-  
+
   loggerCollection = mongoose.connection.db.collection('logger')
 
   app.listen(8084, function () {
@@ -28,14 +30,14 @@ app.use(function (req, res, next) {
   })
 })
 
-app.get('/new/:correlationId/:sourceId', function (req, res) { 
+app.get('/new/:correlationId/:sourceId', function (req, res) {
   var docObject = {
     $set: {
       _id: req.params.correlationId
     }
   }
   docObject.$set['sourceId'] = req.params.sourceId
-  
+
   upsertMongo(req.params.correlationId, docObject, res)
 })
 
@@ -46,7 +48,7 @@ app.get('/queued/:correlationId/:timeQueued', function (req, res) {
     }
   }
   docObject.$set['timeQueued'] = req.params.timeQueued
-  
+
   upsertMongo(req.params.correlationId, docObject, res)
 })
 
@@ -57,7 +59,7 @@ app.get('/update/:correlationId/:field/:value', function (req, res) {
     }
   }
   docObject.$set[req.params.field] = req.params.value
-  
+
   upsertMongo(req.params.correlationId, docObject, res)
 })
 
@@ -67,8 +69,8 @@ app.get('/destinationAdded/:correlationId/:destinationId/:messageId/:timeQueued'
       _id: req.params.correlationId
     }
   }
-  docObject.$set['destinations.'+req.params.destinationId + '.' + req.params.messageId + '.timeQueued'] = req.params.timeQueued
-  
+  docObject.$set['destinations.' + req.params.destinationId + '.' + req.params.messageId + '.timeQueued'] = req.params.timeQueued
+
   upsertMongo(req.params.correlationId, docObject, res)
 })
 
@@ -78,8 +80,8 @@ app.get('/destinationUpdated/:correlationId/:destinationId/:messageId/:field/:va
       _id: req.params.correlationId
     }
   }
-  docObject.$set['destinations.'+req.params.destinationId + '.' + req.params.messageId + '.' + req.params.field] = req.params.value
-  
+  docObject.$set['destinations.' + req.params.destinationId + '.' + req.params.messageId + '.' + req.params.field] = req.params.value
+
   upsertMongo(req.params.correlationId, docObject, res)
 })
 
@@ -100,5 +102,6 @@ function upsertMongo (id, docObject, res) {
           res.status(500).json({ error: 'DB error' })
         }
       }
-  })
+    }
+  )
 }
